@@ -1,5 +1,6 @@
 const CryptoJS = require("crypto-js");
 const jwt = require('jsonwebtoken');
+const { check, validationResult } = require('express-validator');
 const router = require('express').Router();
 var registerModel = require('../models/register.model');
 
@@ -7,8 +8,19 @@ router.get('/', (req, res) => {
   res.status(200).json({ data: 'Welcome to Api' });
 });
 
-router.post('/register', (req, res) => {
-  console.log(req.body);
+router.post('/register', [
+  check('name').not().isEmpty().trim().escape(),
+  check('name').isLength({ min: 6 }),
+  check('email').isEmail(),
+  // password must be at least 5 chars long
+  check('password').isLength({ min: 6 })
+], (req, res) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   let { name, email, password } = req.body;
   let registerdata = new registerModel({ name, email, password });
 
@@ -36,7 +48,13 @@ router.post('/register', (req, res) => {
 
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', [
+  check('email').isEmail(),
+  check('password').isLength({ min: 6 })
+], (req, res) => {
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
   console.log(req.body);
   registerModel.findOne({
     email: req.body.email
