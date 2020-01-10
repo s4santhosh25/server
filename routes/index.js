@@ -26,13 +26,14 @@ router.post('/register', (req, res) => {
       registerdata.save(registerdata, (err, data) => {
         if (err) {
           console.log(err);
-          res.status(200).json({ data: err });
+          res.status(401).json({ data: err });
         }
         console.log(data);
       });
-      res.status(200).json({ data: 'Registration Successful' });
+      res.status(200).json({ data: 'Registration Successful', datetime: new Date() });
     }
   });
+
 });
 
 router.post('/login', (req, res) => {
@@ -41,7 +42,7 @@ router.post('/login', (req, res) => {
     email: req.body.email
   }, (err, data) => {
     if (!data) {
-      res.status(200).json({ data: "Email Does Not Exist" });
+      res.status(401).json({ data: "Email Does Not Exist" });
     } else if (CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8) == req.body.password) {
       // let password = CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
@@ -60,11 +61,12 @@ router.post('/login', (req, res) => {
         }
       );
 
-      res.status(200).json({ data: "Login Successful", token });
+      res.status(200).json({ data: "Login Successful", token, datetime: new Date(});
     } else {
-      res.status(200).json({ data: 'Password Incorrect' });
+      res.status(401).json({ data: 'Password Incorrect' });
     }
   });
+
 });
 
 module.exports = router;
