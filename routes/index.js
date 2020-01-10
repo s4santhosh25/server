@@ -17,9 +17,7 @@ router.post('/register', (req, res) => {
   }, (err, data) => {
     if (data) {
       console.log(data);
-      res
-        .status(200)
-        .json({ data: `${registerdata.email} Already Exists` });
+      res.status(200).json({ data: `${registerdata.email} Already Exists` });
     } else {
       console.log(data);
       let ciphertext = CryptoJS.AES.encrypt(registerdata.password, process.env.SECRET_KEY); // encrypt password
@@ -43,14 +41,9 @@ router.post('/login', (req, res) => {
     email: req.body.email
   }, (err, data) => {
     if (!data) {
-      res
-        .status(200)
-        .json({ data: "Email Does Not Exist" });
+      res.status(200).json({ data: "Email Does Not Exist" });
     } else if (CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8) == req.body.password) {
-      // let password = CryptoJS
-      //   .AES
-      //   .decrypt(data.password, process.env.SECRET_KEY)
-      //   .toString(CryptoJS.enc.Utf8);
+      // let password = CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
 
       let token = jwt.sign({
         email: data.email,
@@ -61,22 +54,15 @@ router.post('/login', (req, res) => {
       registerModel.update({
         email: data.email
       }, {
-          $set: {
-            token: token
-          }
+          $set: { token: token }
         }, (err, d) => {
-          if (err)
-            console.log('err', err);
+          if (err) console.log('err', err);
         }
       );
 
-      res
-        .status(200)
-        .json({ data: "Login Successful", token });
+      res.status(200).json({ data: "Login Successful", token });
     } else {
-      res
-        .status(200)
-        .json({ data: 'Password Incorrect' });
+      res.status(200).json({ data: 'Password Incorrect' });
     }
   });
 });

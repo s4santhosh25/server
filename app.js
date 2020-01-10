@@ -1,17 +1,18 @@
 require('dotenv').config();
+
 var express = require('express');
-const jwt = require('jsonwebtoken');
 var createError = require('http-errors');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var registerModel = require('./models/register.model');
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var port = process.env.PORT || 8000;
+var verifyToken = require('./routes/auth');
 var app = express();
 
+app.set('port', process.env.PORT || 8000);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,50 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 
-//Authenticate
-app.use(verifyToken, (req, res, next) => {
-  jwt
-    .verify(req.token, process.env.SECRET_KEY, function (err, decoded) {
-      if (err) {
-        res
-          .status(200)
-          .json({ auth: false, token: req.token, status: 'unauthorized' });
-      } else {
-        console.log(decoded);
-        registerModel.findOne({
-          email: decoded.email
-        }, (err, data) => {
-          if (err)
-            console.log('err', err);
-          console.log(data);
-          if (req.token === data.token) {
-            res
-              .status(200)
-              .json({ auth: true, token: req.token, status: 'authorized' });
-          } else {
-            res
-              .status(200)
-              .json({ auth: false, token: req.token, status: 'unauthorized' });
-          }
-        });
-      }
-    });
-});
-
-function verifyToken(req, res, next) {
-  if (req.headers['authorization']) {
-    req.token = req
-      .headers['authorization']
-      .split(' ')[1];
-    next();
-  } else {
-    res
-      .status(200)
-      .json({ auth: false, token: req.token, status: 'unauthorized' });
-  }
-}
-
-app.use('/api', usersRouter);
+app.use('/api', verifyToken, usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -86,6 +44,6 @@ app.use(function (err, req, res, next) {
   res.render('error');
 });
 
-app.listen(port, () => console.log(`App running at port ${port}`))
+app.listen(app.get('port'), () => console.log(`App running at port ${app.get('port')}`))
 
 module.exports = app;
