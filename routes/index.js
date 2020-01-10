@@ -61,7 +61,7 @@ router.post('/login', (req, res) => {
         }
       );
 
-      res.status(200).json({ data: "Login Successful", token, datetime: new Date(});
+      res.status(200).json({ data: "Login Successful", token, datetime: new Date() });
     } else {
       res.status(401).json({ data: 'Password Incorrect' });
     }
