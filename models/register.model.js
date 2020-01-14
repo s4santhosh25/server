@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGODB_URL, { useNewUrlParser: true });
 
 const registerSchema = new Schema({
     name: {
@@ -18,7 +18,20 @@ const registerSchema = new Schema({
         required: true,
         min: 6
     },
+    userId: {
+        type: String,
+        required: true,
+        unique: true
+    },
     token: {
+        type: String,
+        default: null
+    },
+    expires_at: {
+        type: Number,
+        default: null
+    },
+    imageUrl: {
         type: String,
         default: null
     }

@@ -25,7 +25,7 @@ const verifyToken = (req, res, next) => {
             }
         })
     } else {
-        res.status(401).json({ auth: false, token: req.token, status: 'unauthorized' });
+        res.status(401).json({ auth: false, status: 'unauthorized' });
     }
 }
 
