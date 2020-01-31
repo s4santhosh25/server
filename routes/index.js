@@ -11,16 +11,16 @@ router.get('/', (req, res) => {
 
 router.post('/oauth', (req, res) => {
   try {
-    let { token: { name, email, expires_at, imageUrl, access_token } } = req.body;
+    let { token: { name, email, imageUrl, idpId, access_token } } = req.body;
 
-    let registerdata = new registerModel({ name, email, password: access_token, expires_at, token: access_token, imageUrl });
+    let registerdata = new registerModel({ name, email, password: access_token, idpId, token: access_token, imageUrl });
     registerdata.userId = uuid();
 
     registerModel.findOne({
       email: registerdata.email
     }, (err, data) => {
       if (data) {
-        console.log(data);
+        // console.log(data);
         registerModel.update({
           email: registerdata.email
         }, {
@@ -30,21 +30,59 @@ router.post('/oauth', (req, res) => {
               password: registerdata.password,
               expires_at: registerdata.expires_at,
               token: registerdata.token,
-              imageUrl: registerdata.imageUrl
+              imageUrl: registerdata.imageUrl,
+              idpId: registerdata.idpId
             }
           }, (err, d) => {
             if (err)
               res.status(401).json({ data: err });
           }
         );
-        res.status(200).json({ data: { status: 'Registration Successful', token: data.token, expires_at: data.expires_at }, datetime: new Date() });
+
+        let token = jwt.sign({
+          email: data.email,
+          name: data.name,
+          userId: data.userId,
+          imageUrl: data.imageUrl,
+          token: data.token,
+          idpId: data.idpId
+        }, process.env.SECRET_KEY, { expiresIn: '1h' })
+
+        registerModel.update({
+          email: data.email
+        }, {
+            $set: { token: token }
+          }, (err, d) => {
+            if (err) console.log('err', err);
+          }
+        );
+
+        res.status(200).json({ data: { status: 'Registration Successful', token }, datetime: new Date() });
       } else {
         registerdata.save(registerdata, (err, data) => {
           if (err) {
             console.log(err);
             res.status(401).json({ data: err });
           } else {
-            res.status(200).json({ data: { status: 'Registration Successful', token: data.token, expires_at: data.expires_at }, datetime: new Date() });
+            let token = jwt.sign({
+              email: data.email,
+              name: data.name,
+              userId: data.userId,
+              imageUrl: data.imageUrl,
+              token: data.token,
+              idpId: data.idpId
+            }, process.env.SECRET_KEY, { expiresIn: '1h' })
+
+            registerModel.update({
+              email: data.email
+            }, {
+                $set: { token: token }
+              }, (err, d) => {
+                if (err) console.log('err', err);
+              }
+            );
+
+            res.status(200).json({ data: { status: 'Registration Successful', token }, datetime: new Date() });
           }
         });
       }
@@ -118,6 +156,8 @@ router.post('/login', [
   }, (err, data) => {
     if (!data) {
       res.status(401).json({ data: "Email Does Not Exist" });
+    } else if (data.idpId) {
+      res.status(401).json({ data: `Please login with ${data.idpId}` });
     } else if (CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8) == req.body.password) {
       // let password = CryptoJS.AES.decrypt(data.password, process.env.SECRET_KEY).toString(CryptoJS.enc.Utf8);
 

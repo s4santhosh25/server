@@ -27,11 +27,11 @@ const registerSchema = new Schema({
         type: String,
         default: null
     },
-    expires_at: {
-        type: Number,
+    imageUrl: {
+        type: String,
         default: null
     },
-    imageUrl: {
+    idpId: {
         type: String,
         default: null
     }
