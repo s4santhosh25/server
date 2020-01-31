@@ -20,7 +20,7 @@ const server = http.createServer(app)
 const io = socketIO(server)
 require('./socket')(io);
 
-app.set('port', process.env.PORT || 8000);
+app.set('port', process.env.PORT || 5000);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
