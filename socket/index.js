@@ -43,7 +43,7 @@ module.exports = (io) => {
         socket.on('private_message', (data) => {
             console.log('private_message', data)
             io.to(data.receiver.socketId).emit('incoming_msg', data)
-            socket.emit('incoming_msg', data)
+            socket.emit('ack', data)
         })
 
         console.log('users', users);
